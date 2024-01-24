@@ -58,12 +58,14 @@ VALUES
     ('Supplier5', 'Net 60', '555-789-1234', 2, 'Clothing');
 
 USE my_inventory;
-SHOW * FROM Inventory;
 CREATE TABLE Inventory (
     ProductID INT PRIMARY KEY AUTO_INCREMENT,
-    ProductName VARCHAR(100),
+    ProductName VARCHAR(50),
     ProductPrice DECIMAL(10, 2),
     CategoryID INT,
+    CategoryName VARCHAR(50),
+    SupplierID INT,
+    SupplierName VARCHAR(50),
     StockQuantity INT,
     ReorderLevel INT,
     ShelfLocation VARCHAR(50),
@@ -72,13 +74,47 @@ CREATE TABLE Inventory (
     FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID)
 );
 
-INSERT INTO Inventory (ProductName, ProductPrice, CategoryID, StockQuantity, ReorderLevel, ShelfLocation, LastRestockDate, ExpiryDate) 
+-- Insert 10 sample data into the Inventory table
+USE my_inventory;
+INSERT INTO Inventory (ProductName, ProductPrice, CategoryID, CategoryName, SupplierID, SupplierName, StockQuantity, ReorderLevel, ShelfLocation, LastRestockDate, ExpiryDate)
+VALUES
+    ('Product1', 19.99, 1, 'Electronics', 1, 'Supplier1', 100, 20, 'A1', '2022-01-01', '2023-01-01'),
+    ('Product2', 29.99, 2, 'Clothing', 2, 'Supplier2', 150, 30, 'B2', '2022-02-01', '2023-02-01'),
+    ('Product3', 9.99, 3, 'Books', 3, 'Supplier3', 200, 40, 'C3', '2022-03-01', '2023-03-01'),
+    ('Product4', 39.99, 1, 'Electronics', 1, 'Supplier1', 120, 25, 'A4', '2022-04-01', '2023-04-01'),
+    ('Product5', 49.99, 2, 'Clothing', 2, 'Supplier2', 180, 35, 'B5', '2022-05-01', '2023-05-01'),
+    ('Product6', 14.99, 3, 'Books', 3, 'Supplier3', 220, 45, 'C6', '2022-06-01', '2023-06-01'),
+    ('Product7', 59.99, 1, 'Electronics', 1, 'Supplier1', 80, 15, 'A7', '2022-07-01', '2023-07-01'),
+    ('Product8', 24.99, 2, 'Clothing', 2, 'Supplier2', 130, 28, 'B8', '2022-08-01', '2023-08-01'),
+    ('Product9', 11.99, 3, 'Books', 3, 'Supplier3', 190, 38, 'C9', '2022-09-01', '2023-09-01'),
+    ('Product10', 34.99, 1, 'Electronics', 1, 'Supplier1', 160, 30, 'A10', '2022-10-01', '2023-10-01');
+    
+
+-- View the Inventory table
+USE my_inventory;
+
+CREATE TABLE Employee (
+    EmployeeID INT PRIMARY KEY AUTO_INCREMENT,
+    EmployeeName VARCHAR(50),
+    Position VARCHAR(50),
+    ContactInfo VARCHAR(50)
+);
+
+INSERT INTO Employee (EmployeeName, Position, ContactInfo)
 VALUES 
-    ('Laptop', 1200.00, 1, 50, 10, 'A1', '2023-01-15', '2024-12-31'),
-    ('T-shirt', 19.99, 2, 100, 20, 'B2', '2023-02-20', '2023-12-31'),
-    ('Book', 15.50, 3, 75, 15, 'C3', '2022-12-10', '2024-06-30'),
-    ('Coffee Maker', 49.99, 6, 30, 5, 'D4', '2023-03-05', '2024-09-30'),
-    ('Sofa', 499.99, 7, 10, 2, 'E5', '2023-01-25', '2025-01-31');
+    ('John Doe', 'Manager', '555-1234'),
+    ('Jane Smith', 'Sales Associate', '555-5678'),
+    ('Robert Johnson', 'Accountant', '555-9876'),
+    ('Emily White', 'Marketing Specialist', '555-4321'),
+    ('Michael Brown', 'IT Technician', '555-8765'),
+    ('Emma Davis', 'Customer Service Representative', '555-3456'),
+    ('William Lee', 'HR Coordinator', '555-6543'),
+    ('Olivia Martin', 'Warehouse Supervisor', '555-2345'),
+    ('James Wilson', 'Financial Analyst', '555-8765'),
+    ('Sophia Anderson', 'Research and Development Scientist', '555-3456');
+    
+USE my_inventory;
+SELECT * FROM Employee;
 
 
 

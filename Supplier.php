@@ -1,57 +1,5 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "My_Inventory";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// ... (your existing code)
-
-// Handle new supplier form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addSupplier"])) {
-    $newSupplierName = $conn->real_escape_string($_POST["supplierName"]);
-    // $newContactInfo = $conn->real_escape_string($_POST["contactInfo"]);
-    $newPaymentTerms = $conn->real_escape_string($_POST["paymentTerms"]);
-    $newPhoneNumber = $conn->real_escape_string($_POST["phoneNumber"]);
-    $newCategoryID = $conn->real_escape_string($_POST["categoryID"]);
-
-    $insertQuery = "INSERT INTO Supplier (SupplierName, PaymentTerms, PhoneNumber, CategoryID) 
-                    VALUES ('$newSupplierName', '$newPaymentTerms', '$newPhoneNumber', '$newCategoryID')";
-
-    if ($conn->query($insertQuery) === TRUE) {
-        echo "<p>New supplier added successfully!</p>";
-    } else {
-        echo "<p>Error adding supplier: " . $conn->error . "</p>";
-    }
-}
-// ... (the rest of your existing code)
-
-
-
-// Handle remove supplier form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeSupplier"])) {
-    $removeSupplierName = $conn->real_escape_string($_POST["removeSupplier"]);
-
-    $deleteQuery = "DELETE FROM Supplier WHERE SupplierName = '$removeSupplierName'";
-
-    if ($conn->query($deleteQuery) === TRUE) {
-        echo "<p>Supplier removed successfully! Deleted: $removeSupplierName</p>";
-    } else {
-        echo "<p>Error removing supplier: " . $conn->error . "</p>";
-    }
-}
-
-
-// Fetch and display all suppliers
-$fetchSuppliersQuery = "SELECT * FROM Supplier";
-$suppliersResult = $conn->query($fetchSuppliersQuery);
-
-
+include 'config.php';
 ?>
 
 <!DOCTYPE html>
@@ -61,198 +9,271 @@ $suppliersResult = $conn->query($fetchSuppliersQuery);
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <title>Supplier Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rYU79z8b3CzBXGAZ+R9MDd94R/RO/TFJ2ACa/i8FJQnJd1k1IKVMMsXa4JXAM1v2" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-
 </head>
 
 <body>
+    <div class="d-flex">
+        <?php
+        include 'navbar.php';
+        ?>
+        <div class="main p-3 vh-100 overflow-hidden transition text-center text-center">
+            <div class="p-4">
+                <h4 class="mb-4">Supplier Management</h4>
 
-    <div class="container-fluid">
-        <div class="row">
-            <?php
-            include 'navbar.php';
-            ?>
-
-            <div class="col-md-12">
-
-                <div class="bg-light flex-fill">
-                    <div class="p-2 d-md-none d-flex text-white bg-success">
-                        <a href="#" class="text-white" data-bs-toggle="offcanvas" data-bs-target="#bdSidebar">
-                            <i class="fa-solid fa-bars"></i>
-                        </a>
+                <form class="mb-4" method="GET" action="">
+                    <div class="input-group">
+                        <input type="search" class="form-control" placeholder="Search by Supplier Name" aria-label="Search" name="search">
+                        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
                     </div>
+                </form>
 
-                    <div class="p-4">
-                        <nav style="--bs-breadcrumb-divider:'>';font-size:14px">
-                            <!-- Add the search form here -->
-                            <form class="d-flex justify-content-end mb-2" method="GET" action="">
-                                <input class="form-control me-2" type="search" placeholder="SupplierID" aria-label="Search" name="search">
-                                <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-search"></i></button>
-                            </form>
-                            <!-- End of search form -->
+                <!-- Search Results -->
+                <?php
+                // Number of records per page
+                $recordsPerPage = 10;
 
-                            <!-- PHP code for table -->
-                            <?php
-                            // ... (your existing code)
-                            // PHP code for search by category
-                            if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["search"])) {
-                                $searchTerm = $conn->real_escape_string($_GET["search"]);
-                                $searchQuery = "SELECT * FROM Supplier WHERE SupplierName LIKE '%$searchTerm%'";
-                                $searchResult = $conn->query($searchQuery);
+                // Calculate the total number of pages
+                $totalPagesQuery = "SELECT COUNT(*) as total FROM Supplier";
+                $totalPagesResult = $conn->query($totalPagesQuery);
+                $totalRecords = $totalPagesResult->fetch_assoc()['total'];
+                $totalPages = ceil($totalRecords / $recordsPerPage);
 
-                                if ($searchResult->num_rows > 0) {
-                                    echo "<h4>Search Results by Category:</h4>";
-                                    echo "<table class='table'>";
-                                    echo "<thead><tr><th>Supplier ID</th><th>Supplier Name</th><th>Contact Info</th><th>Payment Terms</th><th>Category</th></tr></thead>";
-                                    echo "<tbody>";
+                // Determine the current page number
+                $currentPage = isset($_GET['page']) ? $_GET['page'] : 1;
+                $offset = ($currentPage - 1) * $recordsPerPage;
 
-                                    while ($row = $searchResult->fetch_assoc()) {
-                                        echo "<tr>";
-                                        echo "<td>" . $row['SupplierID'] . "</td>";
-                                        echo "<td>" . $row['SupplierName'] . "</td>";
-                                        echo "<td>" . $row['PhoneNumber'] . "</td>";
-                                        echo "<td>" . $row['PaymentTerms'] . "</td>";
-                                        echo "<td>" . $row['CategoryName'] . "</td>";
-                                        echo "</tr>";
-                                    }
+                if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["search"])) {
+                    // Display Search Results
+                    $searchTerm = $conn->real_escape_string($_GET["search"]);
+                    $searchQuery = "SELECT * FROM Supplier 
+                    WHERE SupplierName LIKE '%$searchTerm%' 
+                       OR CategoryName LIKE '%$searchTerm%' 
+                    LIMIT $offset, $recordsPerPage";
+                    $searchResult = $conn->query($searchQuery);
+                } else {
+                    // Display Full Supplier Table
+                    $fullTableQuery = "SELECT * FROM Supplier LIMIT $offset, $recordsPerPage";
+                    $fullTableResult = $conn->query($fullTableQuery);
+                }
 
-                                    echo "</tbody></table>";
-                                } else {
-                                    echo "<p>No results found for the search term: $searchTerm</p>";
-                                }
-                            }
-                            // PHP code for table and search
-                            $fullTableQuery = "SELECT * FROM Supplier";
-                            $fullTableResult = $conn->query($fullTableQuery);
+                if (isset($searchResult) && $searchResult->num_rows > 0) {
+                    echo "<h6 class='mb-3'>Search Results:</h6>";
+                    echo "<table class='table'>";
+                    echo "<thead><tr><th>No.</th><th>Supplier Name</th><th>PaymentTerms</th><th>PhoneNumber</th><th>CategoryName</th></tr></thead>";
+                    echo "<tbody>";
+                    $recordNumber = 1;
+                    while ($row = $searchResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . $recordNumber . "</td>";
+                        echo "<td>" . $row['SupplierName'] . "</td>";
+                        echo "<td>" . $row['PaymentTerms'] . "</td>";
+                        echo "<td>" . $row['PhoneNumber'] . "</td>";
+                        echo "<td>" . $row['CategoryName'] . "</td>";
+                        echo "</tr>";
+                        $recordNumber++;
+                    }
 
-                            if ($fullTableResult->num_rows > 0) {
-                                echo "<h4>Full Supplier Table:</h4>";
-                                echo "<table class='table'>";
-                                echo "<thead><tr><th>Supplier ID</th><th>Supplier Name</th><th>PaymentTerms</th><th>PhoneNumber</th><th>CategoryID</th><th>CategoryName</th></tr></thead>";
-                                echo "<tbody>";
+                    echo "</tbody></table>";
 
-                                while ($row = $fullTableResult->fetch_assoc()) {
-                                    echo "<tr>";
-                                    echo "<td>" . $row['SupplierID'] . "</td>";
-                                    echo "<td>" . $row['SupplierName'] . "</td>";
-                                    echo "<td>" . $row['PaymentTerms'] . "</td>";
-                                    echo "<td>" . $row['PhoneNumber'] . "</td>";
-                                    echo "<td>" . $row['CategoryID'] . "</td>";
-                                    echo "<td>" . $row['CategoryName'] . "</td>";
-                                    echo "</tr>";
-                                }
+                    // Pagination links
+                    echo "<nav aria-label='Page navigation'>";
+                    echo "<ul class='pagination justify-content-end'>";
+                    for ($i = 1; $i <= $totalPages; $i++) {
+                        echo "<li class='page-item" . ($i == $currentPage ? " active" : "") . "'>";
+                        echo "<a class='page-link' href='Supplier.php?page=$i&search=" . urlencode($_GET['search']) . "'>$i</a>";
+                        echo "</li>";
+                    }
+                    echo "</ul>";
+                    echo "</nav>";
+                } elseif (isset($fullTableResult) && $fullTableResult->num_rows > 0) {
+                    echo "<h6 class='mb-3'>Full Customer Table:</h6>";
+                    echo "<table class='table'>";
+                    echo "<thead><tr><th>No.</th><th>Supplier Name</th><th>PaymentTerms</th><th>PhoneNumber</th><th>CategoryName</th></tr></thead>";
+                    echo "<tbody>";
+                    $recordNumber = 1;
+                    while ($row = $fullTableResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . $recordNumber . "</td>";
+                        echo "<td>" . $row['SupplierName'] . "</td>";
+                        echo "<td>" . $row['PaymentTerms'] . "</td>";
+                        echo "<td>" . $row['PhoneNumber'] . "</td>";
+                        echo "<td>" . $row['CategoryName'] . "</td>";
+                        echo "</tr>";
+                        $recordNumber++;
+                    }
 
-                                echo "</tbody></table>";
-                            } else {
-                                echo "<p>No suppliers found.</p>";
-                            }
-                            ?>
+                    echo "</tbody></table>";
 
-                            <!-- End of PHP code -->
-
-                            <form method="POST" action="">
-                                <h4>Add New Supplier:</h4>
-                                <div class="mb-3">
-                                    <label for="supplierName" class="form-label">Supplier Name:</label>
-                                    <input type="text" class="form-control" id="supplierName" name="supplierName" required>
-                                </div>
-                              
-                                <div class="mb-3">
-                                    <label for="paymentTerms" class="form-label">Payment Terms:</label>
-                                    <input type="text" class="form-control" id="paymentTerms" name="paymentTerms" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phoneNumber" class="form-label">Phone Number:</label>
-                                    <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="categoryID" class="form-label">Category ID:</label>
-                                    <input type="text" class="form-control" id="categoryID" name="categoryID" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary" name="addSupplier">Add Supplier</button>
-                            </form>
-
-
-
-                            <?php
-                            // Assuming $conn is your database connection
-
-                            function setRemoveSupplierValue()
-                            {
-                                if (isset($_POST['removeSupplier'])) {
-                                    $removeSupplierSelect = $_POST["removeSupplier"];
-                                    $removeSupplierHiddenInput = $_POST["removeSupplierHidden"];
-
-                                    // Set the value of the hidden input to the selected supplier Name
-                                    $selectedSupplier = $removeSupplierSelect;
-                                    $_POST["removeSupplierHidden"] = $selectedSupplier;
-                                }
-                            }
-
-                            // Check if the form is submitted
-                            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                                // Call the function to set the hidden input value
-                                setRemoveSupplierValue();
-
-                                // Process form data (for example, remove the selected supplier from the database)
-                                if (isset($_POST['removeSupplierHidden'])) {
-                                    $selectedSupplier = $_POST['removeSupplierHidden'];
-
-                                    // Perform database operation (example: removing the supplier)
-                                    $removeSupplierQuery = "DELETE FROM Supplier WHERE SupplierName = ?";
-                                    $stmt = $conn->prepare($removeSupplierQuery);
-                                    $stmt->bind_param("s", $selectedSupplier);
-                                    $stmt->execute();
-                                    // Add further error handling and success messages as needed
-                                }
-                            }
-                            ?>
-                            <!-- HTML Form -->
-                            <form method="POST" action="">
-                                <h4>Remove Supplier:</h4>
-                                <div class="mb-3">
-                                    <label for="removeSupplier" class="form-label">Select Supplier to Remove:</label>
-                                    <select class="form-select" id="removeSupplier" name="removeSupplier" required onchange="this.form.submit()">
-                                        <?php
-                                        // Fetch existing suppliers for the dropdown
-                                        $fetchSuppliersQuery = "SELECT * FROM Supplier";
-                                        $suppliersResult = $conn->query($fetchSuppliersQuery);
-
-                                        while ($row = $suppliersResult->fetch_assoc()) {
-                                            echo "<option value='" . $row['SupplierName'] . "'>" . $row['SupplierName'] . "</option>";
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-
-                                <!-- Hidden input to store selected supplier -->
-                                <input type="hidden" name="removeSupplierHidden" id="removeSupplierHidden">
-                                <button type="submit" class="btn btn-danger">Remove Supplier</button>
-                            </form>
+                    // Pagination links
+                    echo "<nav aria-label='Page navigation'>";
+                    echo "<ul class='pagination justify-content-end'>";
+                    for ($i = 1; $i <= $totalPages; $i++) {
+                        echo "<li class='page-item" . ($i == $currentPage ? " active" : "") . "'>";
+                        echo "<a class='page-link' href='Supplier.php?page=$i'>$i</a>";
+                        echo "</li>";
+                    }
+                    echo "</ul>";
+                    echo "</nav>";
+                } else {
+                    echo "<p class='alert alert-info'>No Supplier found.</p>";
+                }
+                ?>
 
 
-                        </nav>
+                <!-- Add New Supplier Form -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">Add Supplier</button>
 
+                <!-- Add Supplier Modal -->
+                <div class="modal fade" id="addSupplierModal" tabindex="-1" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addSupplierModalLabel">Add New Supplier</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="" class="mb-4">
+                                    <div class="mb-3">
+                                        <label for="supplierName" class="form-label">Supplier Name:</label>
+                                        <input type="text" class="form-control" id="supplierName" name="supplierName" required>
+                                    </div>
 
+                                    <div class="mb-3">
+                                        <label for="paymentTerms" class="form-label">Payment Terms:</label>
+                                        <select class="form-select" id="paymentTerms" name="paymentTerms" required>
+                                            <option value="Cash">Cash</option>
+                                            <option value="Online Payment">Online Payment</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="phoneNumber" class="form-label">Phone Number:</label>
+                                        <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="categoryName" class="form-label">Category Name:</label>
+                                        <select class="form-select" id="categoryName" name="categoryName" required>
+                                            <?php
+                                            // Fetch existing categories for the dropdown
+                                            $fetchCategoriesQuery = "SELECT * FROM Category";
+                                            $categoriesResult = $conn->query($fetchCategoriesQuery);
+
+                                            while ($row = $categoriesResult->fetch_assoc()) {
+                                                echo "<option value='" . $row['CategoryName'] . "'>" . $row['CategoryName'] . "</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary" name="addSupplier">Add Supplier</button>
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <?php
+                function showAlertAndRefresh($message)
+                {
+                    echo "<script>alert('" . htmlspecialchars($message, ENT_QUOTES) . "'); window.location.href='Supplier.php';</script>";
+                }
+
+                // Handle new supplier form submission
+                if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addSupplier'])) {
+                    $newSupplierName = $conn->real_escape_string($_POST["supplierName"]);
+                    $newPaymentTerms = $conn->real_escape_string($_POST["paymentTerms"]);
+                    $newPhoneNumber = $conn->real_escape_string($_POST["phoneNumber"]);
+                    $newCategoryName = $conn->real_escape_string($_POST["categoryName"]);
+
+                    // Check if the supplier already exists
+                    $checkSupplierQuery = "SELECT * FROM Supplier WHERE SupplierName = '$newSupplierName'";
+                    $existingSupplierResult = $conn->query($checkSupplierQuery);
+
+                    if ($existingSupplierResult->num_rows > 0) {
+                        showAlertAndRefresh("Supplier with the name '$newSupplierName' already exists.");
+                    } else {
+                        // If the supplier does not exist, insert into the database
+                        $insertQuery = "INSERT INTO Supplier (SupplierName, PaymentTerms, PhoneNumber, CategoryName) 
+                            VALUES ('$newSupplierName', '$newPaymentTerms', '$newPhoneNumber', '$newCategoryName')";
+
+                        if ($conn->query($insertQuery) === TRUE) {
+                            showAlertAndRefresh("New supplier added successfully!");
+                        } else {
+                            showAlertAndRefresh("Error adding supplier: " . $conn->error);
+                        }
+                    }
+                }
+                // Handle remove supplier form submission
+                if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['removeSupplierSearchBtn'])) {
+                    $removeSupplierName = $conn->real_escape_string($_POST["removeSupplier"]); // Change to removeSupplier
+
+                    // Check if the supplier exists
+                    $checkSupplierQuery = "SELECT * FROM Supplier WHERE SupplierName = '$removeSupplierName'";
+                    $existingSupplierResult = $conn->query($checkSupplierQuery);
+
+                    if ($existingSupplierResult->num_rows > 0) {
+                        // Supplier found, proceed with removal
+                        $removeSupplierQuery = "DELETE FROM Supplier WHERE SupplierName = '$removeSupplierName'";
+                        if ($conn->query($removeSupplierQuery) === TRUE) {
+                            showAlertAndRefresh("Supplier '$removeSupplierName' removed successfully!", 'Supplier.php');
+                        } else {
+                            showAlertAndRefresh("Error removing supplier: " . $conn->error, 'Supplier.php');
+                        }
+                    } else {
+                        showAlertAndRefresh("Supplier '$removeSupplierName' not found.", 'Supplier.php');
+                    }
+                }
+
+                // Fetch all suppliers for the dropdown
+                $fetchSuppliersQuery = "SELECT * FROM Supplier";
+                $suppliersResult = $conn->query($fetchSuppliersQuery);
+                ?>
+
+                <!-- Remove Supplier Form -->
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#removeSupplierModal">Remove Supplier</button>
+                <div class="modal fade" id="removeSupplierModal" tabindex="-1" aria-labelledby="removeSupplierModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="removeSupplierModalLabel">Remove Supplier</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="">
+                                    <div class="mb-3">
+                                        <label for="removeSupplier" class="form-label">Select Supplier to Remove:</label>
+                                        <select class="form-select" id="removeSupplier" name="removeSupplier" required>
+                                            <?php
+                                            // Fetch all suppliers for the dropdown
+                                            $fetchSuppliersQuery = "SELECT * FROM Supplier";
+                                            $suppliersResult = $conn->query($fetchSuppliersQuery);
+
+                                            while ($row = $suppliersResult->fetch_assoc()) {
+                                                echo "<option value='" . $row['SupplierName'] . "'>" . $row['SupplierName'] . "</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger" name="removeSupplierSearchBtn">Remove Supplier</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
-
     </div>
 
-
-
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
 </body>
 
 </html>

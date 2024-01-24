@@ -1,5 +1,12 @@
 <?php
-    session_start();
-    $conn = mysqli_connect('localhost','root','','My_Inventory') or die('connection failed');
+session_start();
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "My_Inventory";
 
-?>
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}

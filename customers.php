@@ -1,48 +1,5 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "My_Inventory";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Handle new customer form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addCustomer"])) {
-    $newCustomerName = $conn->real_escape_string($_POST["customerName"]);
-    $newContactInfo = $conn->real_escape_string($_POST["contactInfo"]);
-    $newCustomerAddress = $conn->real_escape_string($_POST["customerAddress"]);
-
-    // Check if the customer already exists
-    $checkCustomerQuery = "SELECT * FROM Customer WHERE CustomerName = '$newCustomerName'";
-    $existingCustomerResult = $conn->query($checkCustomerQuery);
-
-    if ($existingCustomerResult->num_rows > 0) {
-        echo "<p class='alert alert-warning'>Customer with the name '$newCustomerName' already exists.</p>";
-    } else {
-        // If the customer does not exist, insert into the database
-        $insertCustomerQuery = "INSERT INTO Customer (CustomerName, ContactInfo, CustomerAddress) 
-                                VALUES ('$newCustomerName', '$newContactInfo', '$newCustomerAddress')";
-
-        if ($conn->query($insertCustomerQuery) === TRUE) {
-            echo "<p class='alert alert-success'>New customer added successfully!</p>";
-        } else {
-            echo "<p class='alert alert-danger'>Error adding customer: " . $conn->error . "</p>";
-        }
-    }
-}
-
-// Handle remove customer by searching form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeCustomerSearchBtn"])) {
-    $searchRemoveCustomerName = $conn->real_escape_string($_POST["searchRemoveCustomer"]);
-
-    $deleteCustomerQuery = "DELETE FROM Customer WHERE CustomerName = '$searchRemoveCustomerName'";
-
-    if ($conn->query($deleteCustomerQuery) === TRUE) {
-        echo "<p class='alert alert-success'>Customer removed successfully! Deleted CustomerName: $searchRemoveCustomerName</p>";
-    } else {
-        echo "<p class='alert alert-danger'>Error removing customer: " . $conn->error . "</p>";
-    }
-}
+include 'config.php';
 ?>
 
 <!DOCTYPE html>
@@ -58,155 +15,215 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeCustomerSearchBt
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        html, body {
-            height: 100%;
-            font-family: 'Ubuntu', sans-serif;
-        }
-
-        .mynav {
-            color: #fff;
-        }
-
-        .mynav li a {
-            color: #fff;
-            text-decoration: none;
-            width: 100%;
-            display: block;
-            border-radius: 5px;
-            padding: 8px 5px;
-        }
-
-        .mynav li a.active {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .mynav li a:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .mynav li a i {
-            width: 25px;
-            text-align: center;
-        }
-    </style>
 </head>
 
 <body>
+    <div class="d-flex">
+        <?php
+        include 'navbar.php';
+        ?>
+        <div class="main p-3 vh-100 overflow-hidden transition text-center text-center">
+            <div class="p-4">
+                <h4 class="mb-4">Customer Management</h4>
 
-    <div class="container-fluid">
-        <div class="row">
-            <?php include 'navbar.php'; ?>
-
-            <div class="col-md-12">
-
-                <div class="bg-light flex-fill">
-                    <div class="p-2 d-md-none d-flex text-white bg-success">
-                        <a href="#" class="text-success" data-bs-toggle="offcanvas" data-bs-target="#bdSidebar">
-                            <i class="fas fa-bars"></i>
-                        </a>
+                <form class="mb-4" method="GET" action="">
+                    <div class="input-group">
+                        <input type="search" class="form-control" placeholder="Search by Customer Name" aria-label="Search" name="search">
+                        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
                     </div>
+                </form>
 
-                    <div class="p-4">
-                        <h4 class="mb-4">Customer Management</h4>
+                <!-- Search Results -->
+                <?php
+                // Number of records per page
+                $recordsPerPage = 10;
 
-                        <!-- Search Form -->
-                        <form class="mb-4" method="GET" action="">
-                            <div class="input-group">
-                                <input type="search" class="form-control" placeholder="Search by Customer Name" aria-label="Search" name="search">
-                                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                // Calculate the total number of pages
+                $totalPagesQuery = "SELECT COUNT(*) as total FROM Customer";
+                $totalPagesResult = $conn->query($totalPagesQuery);
+                $totalRecords = $totalPagesResult->fetch_assoc()['total'];
+                $totalPages = ceil($totalRecords / $recordsPerPage);
+
+                // Determine the current page number
+                $currentPage = isset($_GET['page']) ? $_GET['page'] : 1;
+                $offset = ($currentPage - 1) * $recordsPerPage;
+
+                if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["search"])) {
+                    // Display Search Results
+                    $searchTerm = $conn->real_escape_string($_GET["search"]);
+                    $searchQuery = "SELECT * FROM Customer 
+                    WHERE CustomerName LIKE '%$searchTerm%' 
+                       OR ContactInfo LIKE '%$searchTerm%' 
+                       OR CustomerAddress LIKE '%$searchTerm%'
+                    LIMIT $offset, $recordsPerPage";
+                    $searchResult = $conn->query($searchQuery);
+                } else {
+                    // Display Full Customer Table
+                    $fullTableQuery = "SELECT * FROM Customer LIMIT $offset, $recordsPerPage";
+                    $fullTableResult = $conn->query($fullTableQuery);
+                }
+
+                if (isset($searchResult) && $searchResult->num_rows > 0) {
+                    echo "<h6 class='mb-3'>Search Results:</h6>";
+                    echo "<table class='table'>";
+                    echo "<thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactInfo</th><th>CustomerAddress</th></thead>";
+                    echo "<tbody>";
+
+                    while ($row = $searchResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . $row['CustomerID'] . "</td>";
+                        echo "<td>" . $row['CustomerName'] . "</td>";
+                        echo "<td>" . $row['ContactInfo'] . "</td>";
+                        echo "<td>" . $row['CustomerAddress'] . "</td>";
+                        echo "</tr>";
+                    }
+
+                    echo "</tbody></table>";
+
+                    // Pagination links
+                    echo "<nav aria-label='Page navigation'>";
+                    echo "<ul class='pagination justify-content-end'>";
+                    for ($i = 1; $i <= $totalPages; $i++) {
+                        echo "<li class='page-item" . ($i == $currentPage ? " active" : "") . "'>";
+                        echo "<a class='page-link' href='customers.php?page=$i&search=" . urlencode($_GET['search']) . "'>$i</a>";
+                        echo "</li>";
+                    }
+                    echo "</ul>";
+                    echo "</nav>";
+                } elseif (isset($fullTableResult) && $fullTableResult->num_rows > 0) {
+                    echo "<h6 class='mb-3'>Full Customer Table:</h6>";
+                    echo "<table class='table'>";
+                    echo "<thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactInfo</th><th>CustomerAddress</th></thead>";
+                    echo "<tbody>";
+
+                    while ($row = $fullTableResult->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . $row['CustomerID'] . "</td>";
+                        echo "<td>" . $row['CustomerName'] . "</td>";
+                        echo "<td>" . $row['ContactInfo'] . "</td>";
+                        echo "<td>" . $row['CustomerAddress'] . "</td>";
+                        echo "</tr>";
+                    }
+
+                    echo "</tbody></table>";
+
+                    // Pagination links
+                    echo "<nav aria-label='Page navigation'>";
+                    echo "<ul class='pagination justify-content-end'>";
+                    for ($i = 1; $i <= $totalPages; $i++) {
+                        echo "<li class='page-item" . ($i == $currentPage ? " active" : "") . "'>";
+                        echo "<a class='page-link' href='customers.php?page=$i'>$i</a>";
+                        echo "</li>";
+                    }
+                    echo "</ul>";
+                    echo "</nav>";
+                } else {
+                    echo "<p class='alert alert-info'>No customers found.</p>";
+                }
+                ?>
+
+
+                <!-- Add New Customer Form -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">Add Customer</button>
+                <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addCustomerModalLabel">Add New Customer</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                        </form>
+                            <div class="modal-body">
+                                <form method="POST" action="" class="mb-4">
+                                    <div class="mb-3">
+                                        <label for="customerName" class="form-label">Customer Name:</label>
+                                        <input type="text" class="form-control" id="customerName" name="customerName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="contactInfo" class="form-label">Contact Info:</label>
+                                        <input type="text" class="form-control" id="contactInfo" name="contactInfo" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="customerAddress" class="form-label">Customer Address:</label>
+                                        <input type="text" class="form-control" id="customerAddress" name="customerAddress" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" name="addCustomer">Add Customer</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php
+                function showAlertAndRefresh($message)
+                {
+                    echo "<script>alert('" . htmlspecialchars($message, ENT_QUOTES) . "'); window.location.href='customers.php';</script>";
+                }
 
-                        <!-- Search Results -->
-                        <?php
-                        if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["search"])) {
-                            $searchTerm = $conn->real_escape_string($_GET["search"]);
-                            $searchQuery = ("SELECT * FROM Customer WHERE CustomerName LIKE '%$searchTerm%'");
-                            $searchResult = $conn->query($searchQuery);
+                // Handle new customer form submission
+                if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addCustomer"])) {
+                    $newCustomerName = $conn->real_escape_string($_POST["customerName"]);
+                    $newContactInfo = $conn->real_escape_string($_POST["contactInfo"]);
+                    $newCustomerAddress = $conn->real_escape_string($_POST["customerAddress"]);
 
-                            if ($searchResult->num_rows > 0) {
-                                echo "<h6 class='mb-3'>Search Results:</h6>";
-                                echo "<table class='table'>";
-                                echo "<thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactInfo</th><th>CustomerAddress</th></thead>";
-                                echo "<tbody>";
+                    // Check if the customer already exists
+                    $checkCustomerQuery = "SELECT * FROM Customer WHERE CustomerName = '$newCustomerName'";
+                    $existingCustomerResult = $conn->query($checkCustomerQuery);
 
-                                while ($row = $searchResult->fetch_assoc()) {
-                                    echo "<tr>";
-                                    echo "<td>" . $row['CustomerID'] . "</td>";
-                                    echo "<td>" . $row['CustomerName'] . "</td>";
-                                    echo "<td>" . $row['ContactInfo'] . "</td>";
-                                    echo "<td>" . $row['CustomerAddress'] . "</td>";
-                                    echo "</tr>";
-                                }
+                    if ($existingCustomerResult->num_rows > 0) {
+                        showAlertAndRefresh("Customer with the name '$newCustomerName' already exists.");
+                    } else {
+                        // If the customer does not exist, insert into the database
+                        $insertCustomerQuery = "INSERT INTO Customer (CustomerName, ContactInfo, CustomerAddress) 
+                                VALUES ('$newCustomerName', '$newContactInfo', '$newCustomerAddress')";
 
-                                echo "</tbody></table>";
-                            } else {
-                                echo "<p class='alert alert-info'>No results found for the search term: $searchTerm</p>";
-                            }
-                        }
-                        ?>
-
-                        <!-- Full Customer Table -->
-                        <?php
-                        $fullTableQuery = "SELECT * FROM Customer";
-                        $fullTableResult = $conn->query($fullTableQuery);
-
-                        if ($fullTableResult->num_rows > 0) {
-                            echo "<h6 class='mb-3'>Full Customer Table:</h6>";
-                            echo "<table class='table'>";
-                            echo "<thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactInfo</th><th>CustomerAddress</th></thead>";
-                            echo "<tbody>";
-
-                            while ($row = $fullTableResult->fetch_assoc()) {
-                                echo "<tr>";
-                                echo "<td>" . $row['CustomerID'] . "</td>";
-                                echo "<td>" . $row['CustomerName'] . "</td>";
-                                echo "<td>" . $row['ContactInfo'] . "</td>";
-                                echo "<td>" . $row['CustomerAddress'] . "</td>";
-                                echo "</tr>";
-                            }
-
-                            echo "</tbody></table>";
+                        if ($conn->query($insertCustomerQuery) === TRUE) {
+                            showAlertAndRefresh("New customer added successfully!");
                         } else {
-                            echo "<p class='alert alert-info'>No customers found.</p>";
+                            showAlertAndRefresh("Error adding customer: " . $conn->error);
                         }
-                        ?>
+                    }
+                }
 
-                        <!-- Add New Customer Form -->
-                        <form method="POST" action="" class="mb-4">
-                            <h4 class="mb-3">Add New Customer</h4>
-                            <div class="mb-3">
-                                <label for="customerName" class="form-label">Customer Name:</label>
-                                <input type="text" class="form-control" id="customerName" name="customerName" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="contactInfo" class="form-label">Contact Info:</label>
-                                <input type="text" class="form-control" id="contactInfo" name="contactInfo" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="customerAddress" class="form-label">Customer Address:</label>
-                                <input type="text" class="form-control" id="customerAddress" name="customerAddress" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary" name="addCustomer">Add Customer</button>
-                        </form>
+                // Handle remove customer by searching form submission
+                if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeCustomerSearchBtn"])) {
+                    $searchRemoveCustomerName = $conn->real_escape_string($_POST["searchRemoveCustomer"]);
 
-                        <!-- Remove Customer Form -->
-                        <form method="POST" action="">
-                            <h4 class="mb-3">Remove Customer by Searching</h4>
-                            <div class="mb-3">
-                                <label for="searchRemoveCustomer" class="form-label">Enter Customer Name to Remove:</label>
-                                <input type="text" class="form-control" id="searchRemoveCustomer" name="searchRemoveCustomer" required>
+                    $deleteCustomerQuery = "DELETE FROM Customer WHERE CustomerName = '$searchRemoveCustomerName'";
+
+                    if ($conn->query($deleteCustomerQuery) === TRUE) {
+                        showAlertAndRefresh("Customer removed successfully! Deleted CustomerName: $searchRemoveCustomerName");
+                    } else {
+                        showAlertAndRefresh("Error removing customer: " . $conn->error);
+                    }
+                }
+                ?>
+                <!-- Remove Customer Form -->
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#removeCustomerModal">Remove Customer</button>
+                <div class="modal fade" id="removeCustomerModal" tabindex="-1" aria-labelledby="removeCustomerModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="removeCustomerModalLabel">Remove Customer by Searching</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <button type="submit" class="btn btn-danger" name="removeCustomerSearchBtn">Remove Customer</button>
-                        </form>
+                            <div class="modal-body">
+                                <form method="POST" action="">
+                                    <div class="mb-3">
+                                        <label for="searchRemoveCustomer" class="form-label">Enter Customer Name to Remove:</label>
+                                        <input type="text" class="form-control" id="searchRemoveCustomer" name="searchRemoveCustomer" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger" name="removeCustomerSearchBtn">Remove Customer</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
 </body>
 
 </html>
