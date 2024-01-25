@@ -28,22 +28,19 @@ if ($conn->connect_error) {
 
 <body>
     <div class="d-flex">
-            <?php
-                include 'navbar.php';
-            ?>
+        <?php
+        include 'navbar.php';
+        ?>
 
-            <div class="main p-3 vh-100 overflow-hidden transition text-center">
+        <div class="main p-3 vh-100 overflow-hidden transition text-center">
 
-                    <h1>Dashboard</h1>
-                    <div class="fs-1">hello world</div>
-                    <div class="fs-1">hello world</div>
-                    <div class="fs-1">hello world</div>
+            <p class="fs-1">Dashboard</p>
+            <h1>This page is under construction!!!!</h1>
 
-            </div>
         </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
-     integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
 </body>
 
 </html>

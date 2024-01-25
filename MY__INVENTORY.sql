@@ -112,9 +112,41 @@ VALUES
     ('Olivia Martin', 'Warehouse Supervisor', '555-2345'),
     ('James Wilson', 'Financial Analyst', '555-8765'),
     ('Sophia Anderson', 'Research and Development Scientist', '555-3456');
-    
+
 USE my_inventory;
 SELECT * FROM Employee;
+
+USE my_inventory;
+
+CREATE TABLE Transaction (
+    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
+    TransactionType VARCHAR(50),
+    TransactionDate DATE,
+    TransactionAmount VARCHAR(50),
+    TotalQuantity VARCHAR(50)
+);
+USE my_inventory;
+INSERT INTO Transaction (TransactionType, TransactionDate, TransactionAmount, TotalQuantity)
+VALUES
+    ('Sale', '2024-01-25', 100.50, 5),
+    ('Purchase', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-26', 75.25, 3),
+    ('Purchase', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-25', 100.50, 5),
+    ('Purchase', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-26', 75.25, 3),
+    ('Purchase', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-25', 100.50, 5),
+    ('Purchase', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-26', 75.25, 3),
+    ('Purchase', '2024-01-26', 75.25, 3),
+    ('Sale', '2024-01-26', 75.25, 3);
+
+
+
+
 
 
 

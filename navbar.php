@@ -33,7 +33,7 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
+                <a href="transaction.php" class="sidebar-link">
                     <i class="lni lni-coin"></i>
                     <span>Transaction</span>
                 </a>
