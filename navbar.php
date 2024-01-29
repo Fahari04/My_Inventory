@@ -80,13 +80,13 @@
                 </ul>
             </li>
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#sale" aria-expanded="false" aria-controls="sale">
+                <a href="" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#sale" aria-expanded="false" aria-controls="sale">
                     <i class="lni lni-money-location"></i>
                     <span>Sale</span>
                 </a>
                 <ul id="sale" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
                     <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">
+                        <a href="Sale.php" class="sidebar-link">
                             <i class="lni lni-money-location"></i>
                             Sale</a>
                     </li>

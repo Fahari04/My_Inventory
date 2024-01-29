@@ -55,6 +55,7 @@ include 'config.php';
                     WHERE CustomerName LIKE '%$searchTerm%' 
                        OR ContactInfo LIKE '%$searchTerm%' 
                        OR CustomerAddress LIKE '%$searchTerm%'
+                       OR CustomerID LIKE '%$searchTerm%'
                     LIMIT $offset, $recordsPerPage";
                     $searchResult = $conn->query($searchQuery);
                 } else {
@@ -226,4 +227,3 @@ include 'config.php';
 </body>
 
 </html>
-
