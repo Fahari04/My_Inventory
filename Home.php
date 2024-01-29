@@ -6,9 +6,12 @@
     <link rel="stylesheet" href="style.css">
     <title>QuickStock</title>
 </head>
+<style>
+    
+</style>
 
 <body>
-
+    
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <a class="navbar-brand h4 ps-5" href="">My Inventory</a>
