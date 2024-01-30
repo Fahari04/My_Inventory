@@ -90,7 +90,7 @@ $transactions = getTransactionsWithPagination($offset, $transactionsPerPage);
                         while ($row = $searchResult->fetch_assoc()) {
                             echo "<tr>";
                             echo "<td>" . $recordNumber . "</td>";
-                            
+
                             echo "<td>" . $row['TransactionProduct'] . "</td>";
                             echo "<td>" . $row['TransactionHolder'] . "</td>";
                             echo "<td>" . $row['TransactionType'] . "</td>";
@@ -107,10 +107,11 @@ $transactions = getTransactionsWithPagination($offset, $transactionsPerPage);
                         $totalRows = $searchResult->num_rows;
                         $totalPages = ceil($totalRows / $resultsPerPage);
 
-                        echo "<div class='pagination-container'>";
-                        echo "<ul class='pagination'>";
+                        // Pagination controls
+                        echo "<div class='pagination-container mt-3'>";
+                        echo "<ul class='pagination justify-content-end'>";
                         for ($i = 1; $i <= $totalPages; $i++) {
-                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i&search=$searchTerm'>$i</a></li>";
+                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i" . (isset($_GET['search']) ? "&search={$_GET['search']}" : "") . "'>$i</a></li>";
                         }
                         echo "</ul>";
                         echo "</div>";
@@ -132,7 +133,7 @@ $transactions = getTransactionsWithPagination($offset, $transactionsPerPage);
                         while ($row = $fullTableResult->fetch_assoc()) {
                             echo "<tr>";
                             echo "<td>" . $recordNumber . "</td>";
-                 
+
                             echo "<td>" . $row['TransactionProduct'] . "</td>";
                             echo "<td>" . $row['TransactionHolder'] . "</td>";
                             echo "<td>" . $row['TransactionType'] . "</td>";
@@ -149,10 +150,11 @@ $transactions = getTransactionsWithPagination($offset, $transactionsPerPage);
                         $totalRows = $fullTableResult->num_rows;
                         $totalPages = ceil($totalRows / $resultsPerPage);
 
-                        echo "<div class='pagination-container'>";
-                        echo "<ul class='pagination'>";
+                        // Pagination controls
+                        echo "<div class='pagination-container mt-3'>";
+                        echo "<ul class='pagination justify-content-end'>";
                         for ($i = 1; $i <= $totalPages; $i++) {
-                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i'>$i</a></li>";
+                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i" . (isset($_GET['search']) ? "&search={$_GET['search']}" : "") . "'>$i</a></li>";
                         }
                         echo "</ul>";
                         echo "</div>";
@@ -162,7 +164,7 @@ $transactions = getTransactionsWithPagination($offset, $transactionsPerPage);
                 }
                 ?>
 
-                
+
             </div>
         </div>
     </div>
