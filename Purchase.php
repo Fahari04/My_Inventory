@@ -1,13 +1,27 @@
 <?php
 include 'config.php';
 
+$user_id = $_SESSION['user_id'];
+
+// Fetch user data from the database
+$query = "SELECT `id`, `name`, `username`, `email`, `password`, `mobile`, `date_of_birth`, `image` FROM `user_form` WHERE `id` = $user_id";
+$result = mysqli_query($conn, $query);
+
+// Check if the query was successful
+if ($result) {
+    // Fetch user details
+    $user = mysqli_fetch_assoc($result);
+} else {
+    // Handle error if query fails
+    die('Query failed: ' . mysqli_error($conn));
+}
 // Function to show alerts and refresh the page
 function showAlertAndRefresh($message)
 {
-    echo "<script>alert('" . htmlspecialchars($message, ENT_QUOTES) . "'); window.location.href='Purchase.php';</script>";
+    echo "<script>alert('" . htmlspecialchars($message, ENT_QUOTES) . "'); window.location.href='transaction.php';</script>";
 }
 $selectedProductName = "";
-$selectedCustomerName = "Admin";
+$selectedCustomerName = $user['name'];
 // Handle product purchase form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
     // Ensure purchase date is set

@@ -1,5 +1,4 @@
 <?php
-include 'config.php';
 
 // Function to show alerts and refresh the page
 function showAlertAndRefresh($message)

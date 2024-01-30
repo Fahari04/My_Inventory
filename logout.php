@@ -2,6 +2,6 @@
 session_start();
 session_unset();
 session_destroy();
-header('location: SingIn.php');
+header('location: Home.php');
 exit();
 ?>

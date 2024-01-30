@@ -1,9 +1,8 @@
 <?php
 include 'config.php';
 
-
+// Check if the login form is submitted
 if (isset($_POST['submit'])) {
-
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $pass = mysqli_real_escape_string($conn, md5($_POST['password']));
 
@@ -11,13 +10,17 @@ if (isset($_POST['submit'])) {
 
     if (mysqli_num_rows($select) > 0) {
         $row = mysqli_fetch_assoc($select);
+        
+        // Store user_id in the session
         $_SESSION['user_id'] = $row['id'];
+
+        // Redirect to the dashboard
         header('location:dashboard.php');
+        exit(); // Make sure to exit after redirecting
     } else {
         $message[] = 'Incorrect email or password!';
     }
 }
-
 ?>
 
 <!DOCTYPE html>

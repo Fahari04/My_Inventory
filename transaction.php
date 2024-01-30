@@ -2,10 +2,11 @@
 include 'config.php';
 
 // Function to fetch transactions from the database with pagination
-function getTransactionsWithPagination($offset, $limit)
+function getTransactionsWithPagination($offset, $limit, $searchTerm = "")
 {
     global $conn;
-    $query = "SELECT * FROM Transaction LIMIT $offset, $limit";
+    $searchCondition = $searchTerm ? " WHERE TransactionID LIKE '%$searchTerm%' OR TransactionProduct LIKE '%$searchTerm%' or TransactionHolder LIKE '%$searchTerm%' or TransactionType LIKE '%$searchTerm%' or TransactionDate LIKE '%$searchTerm%' or TransactionAmount LIKE '%$searchTerm%' or TotalQuantity LIKE '%$searchTerm%'" : "";
+    $query = "SELECT * FROM Transaction $searchCondition LIMIT $offset, $limit";
     $result = $conn->query($query);
 
     if ($result->num_rows > 0) {
@@ -16,10 +17,11 @@ function getTransactionsWithPagination($offset, $limit)
 }
 
 // Function to get the total number of transactions
-function getTotalTransactionsCount()
+function getTotalTransactionsCount($searchTerm = "")
 {
     global $conn;
-    $query = "SELECT COUNT(*) as total FROM Transaction";
+    $searchCondition = $searchTerm ? " WHERE TransactionID LIKE '%$searchTerm%' OR TransactionProduct LIKE '%$searchTerm%' or TransactionHolder LIKE '%$searchTerm%' or TransactionType LIKE '%$searchTerm%' or TransactionDate LIKE '%$searchTerm%' or TransactionAmount LIKE '%$searchTerm%' or TotalQuantity LIKE '%$searchTerm%'" : "";
+    $query = "SELECT COUNT(*) as total FROM Transaction $searchCondition";
     $result = $conn->query($query);
 
     if ($result->num_rows > 0) {
@@ -32,16 +34,24 @@ function getTotalTransactionsCount()
 // Number of transactions per page
 $transactionsPerPage = 10;
 
-// Calculate the total number of pages
-$totalTransactions = getTotalTransactionsCount();
-$totalPages = ceil($totalTransactions / $transactionsPerPage);
-
 // Determine the current page number
 $currentPage = isset($_GET['page']) ? $_GET['page'] : 1;
+
+// Fetch search term
+$searchTerm = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : "";
+
+// Calculate the total number of pages
+$totalTransactions = getTotalTransactionsCount($searchTerm);
+$totalPages = ceil($totalTransactions / $transactionsPerPage);
+
+// Ensure the current page is within valid bounds
+$currentPage = max(1, min($currentPage, $totalPages));
+
+// Calculate the offset for the SQL query
 $offset = ($currentPage - 1) * $transactionsPerPage;
 
 // Fetch transactions for the current page
-$transactions = getTransactionsWithPagination($offset, $transactionsPerPage);
+$transactions = getTransactionsWithPagination($offset, $transactionsPerPage, $searchTerm);
 ?>
 
 <!DOCTYPE html>
@@ -69,107 +79,46 @@ $transactions = getTransactionsWithPagination($offset, $transactionsPerPage);
             </form>
             <div class="container mt-5">
                 <?php
+                // Displaying search results or full transaction table
+                if ($transactions) {
+                    echo "<h4>Transaction Table:</h4>";
+                    echo "<table class='table'>";
+                    echo "<thead><tr><th>TransactionNO</th><th>TransactionProduct</th><th>TransactionHolder</th><th>Transaction Type</th><th>Transaction Date</th><th>Transaction Amount</th><th>TotalQuantity</th></tr></thead>";
+                    echo "<tbody>";
 
-                // Pagination configuration
-                $resultsPerPage = 10;
-                $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                $offset = ($page - 1) * $resultsPerPage;
-                // PHP code for search by Transaction ID or Product
-                if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET["search"])) {
-                    $searchTerm = $conn->real_escape_string($_GET["search"]);
-                    $searchQuery = "SELECT * FROM transaction WHERE TransactionID LIKE '%$searchTerm%' OR TransactionProduct LIKE '%$searchTerm%' or TransactionHolder LIKE '%$searchTerm%' or TransactionType LIKE '%$searchTerm%' or TransactionDate LIKE '%$searchTerm%' or TransactionAmount LIKE '%$searchTerm%' or TotalQuantity LIKE '%$searchTerm%' LIMIT $offset, $resultsPerPage";
-                    $searchResult = $conn->query($searchQuery);
-
-                    if ($searchResult && $searchResult->num_rows > 0) {
-                        echo "<h4>Search Results:</h4>";
-                        echo "<table class='table'>";
-                        echo "<thead><tr><th>TransactionNO</th><th>TransactionProduct</th><th>TransactionHolder</th><th>Transaction Type</th><th>Transaction Date</th><th>Transaction Amount</th><th>TotalQuantity</th></tr></thead>";
-                        echo "<tbody>";
-
-                        $recordNumber = $offset + 1;
-                        while ($row = $searchResult->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td>" . $recordNumber . "</td>";
-
-                            echo "<td>" . $row['TransactionProduct'] . "</td>";
-                            echo "<td>" . $row['TransactionHolder'] . "</td>";
-                            echo "<td>" . $row['TransactionType'] . "</td>";
-                            echo "<td>" . $row['TransactionDate'] . "</td>";
-                            echo "<td>" . $row['TransactionAmount'] . "</td>";
-                            echo "<td>" . $row['TotalQuantity'] . "</td>";
-                            echo "</tr>";
-                            $recordNumber++;
-                        }
-
-                        echo "</tbody></table>";
-
-                        // Pagination controls
-                        $totalRows = $searchResult->num_rows;
-                        $totalPages = ceil($totalRows / $resultsPerPage);
-
-                        // Pagination controls
-                        echo "<div class='pagination-container mt-3'>";
-                        echo "<ul class='pagination justify-content-end'>";
-                        for ($i = 1; $i <= $totalPages; $i++) {
-                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i" . (isset($_GET['search']) ? "&search={$_GET['search']}" : "") . "'>$i</a></li>";
-                        }
-                        echo "</ul>";
-                        echo "</div>";
-                    } else {
-                        echo "<p>No results found for the search term: $searchTerm</p>";
+                    $recordNumber = $offset + 1;
+                    foreach ($transactions as $row) {
+                        echo "<tr>";
+                        echo "<td>" . $recordNumber . "</td>";
+                        echo "<td>" . $row['TransactionProduct'] . "</td>";
+                        echo "<td>" . $row['TransactionHolder'] . "</td>";
+                        echo "<td>" . $row['TransactionType'] . "</td>";
+                        echo "<td>" . $row['TransactionDate'] . "</td>";
+                        echo "<td>" . $row['TransactionAmount'] . "</td>";
+                        echo "<td>" . $row['TotalQuantity'] . "</td>";
+                        echo "</tr>";
+                        $recordNumber++;
                     }
+
+                    echo "</tbody></table>";
+
+                    // Pagination controls
+                    echo "<div class='pagination-container mt-3'>";
+                    echo "<ul class='pagination justify-content-end'>";
+                    for ($i = 1; $i <= $totalPages; $i++) {
+                        echo "<li class='page-item " . ($currentPage == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i" . ($searchTerm ? "&search=$searchTerm" : "") . "'>$i</a></li>";
+                    }
+                    echo "</ul>";
+                    echo "</div>";
                 } else {
-                    // PHP code for displaying the full Transaction table with pagination
-                    $fullTableQuery = "SELECT * FROM transaction LIMIT $offset, $resultsPerPage";
-                    $fullTableResult = $conn->query($fullTableQuery);
-
-                    if ($fullTableResult && $fullTableResult->num_rows > 0) {
-                        echo "<h4>Full Transaction Table:</h4>";
-                        echo "<table class='table'>";
-                        echo "<thead><tr><th>TransactionNO</th><th>TransactionProduct</th><th>TransactionHolder</th><th>Transaction Type</th><th>Transaction Date</th><th>Transaction Amount</th><th>TotalQuantity</th></tr></thead>";
-                        echo "<tbody>";
-
-                        $recordNumber = $offset + 1;
-                        while ($row = $fullTableResult->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td>" . $recordNumber . "</td>";
-
-                            echo "<td>" . $row['TransactionProduct'] . "</td>";
-                            echo "<td>" . $row['TransactionHolder'] . "</td>";
-                            echo "<td>" . $row['TransactionType'] . "</td>";
-                            echo "<td>" . $row['TransactionDate'] . "</td>";
-                            echo "<td>" . $row['TransactionAmount'] . "</td>";
-                            echo "<td>" . $row['TotalQuantity'] . "</td>";
-                            echo "</tr>";
-                            $recordNumber++;
-                        }
-
-                        echo "</tbody></table>";
-
-                        // Pagination controls
-                        $totalRows = $fullTableResult->num_rows;
-                        $totalPages = ceil($totalRows / $resultsPerPage);
-
-                        // Pagination controls
-                        echo "<div class='pagination-container mt-3'>";
-                        echo "<ul class='pagination justify-content-end'>";
-                        for ($i = 1; $i <= $totalPages; $i++) {
-                            echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page=$i" . (isset($_GET['search']) ? "&search={$_GET['search']}" : "") . "'>$i</a></li>";
-                        }
-                        echo "</ul>";
-                        echo "</div>";
-                    } else {
-                        echo "<p>No transactions found.</p>";
-                    }
+                    echo "<p>No transactions found.</p>";
                 }
                 ?>
-
-
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-EFhIiGQGqI1GfTkP9ibYI5hB6ysjOGp1hiZyAnFGa/1R3ZBTPetOuW49lI" crossorigin="anonymous"></script>
 </body>
 
 </html>

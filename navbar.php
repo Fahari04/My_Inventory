@@ -1,3 +1,13 @@
+<?php
+include 'config.php';
+
+if (!isset($_SESSION['user_id'])) {
+    // Redirect to login page if not logged in
+    header('location: Home.php');
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -104,14 +114,14 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
+                <a href="Profile.php" class="sidebar-link">
                     <i class="lni lni-protection"></i>
                     <span>Profile</span>
                 </a>
             </li>
         </ul>
         <div class="sidebar-footer">
-            <a href="#" class="sidebar-link">
+            <a href="logout.php" class="sidebar-link">
                 <i class="lni lni-exit"></i>
                 <span>Logout</span>
             </a>
