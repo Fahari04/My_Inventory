@@ -39,8 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addProduct'])) {
         showAlertAndRefresh("Product with the name '$newProductName' already exists.");
     } else {
         // If the product does not exist, insert into the database
-        $insertQuery = "INSERT INTO Inventory (ProductName, ProductPrice, CategoryID,CategoryName, SupplierID,SupplierName, StockQuantity, ReorderLevel, ShelfLocation, LastRestockDate, ExpiryDate) 
-            VALUES ('$newProductName', '$newProductPrice', '$newCategoryID','$newCategoryName', '$newSupplierID','$newSupplierName', '$newStockQuantity', '$newReorderLevel', '$newShelfLocation', '$newLastRestockDate', '$newExpiryDate')";
+        $insertQuery = "INSERT INTO Inventory (ProductName, ProductPrice,CategoryName, SupplierName, StockQuantity, ReorderLevel, ShelfLocation, LastRestockDate, ExpiryDate) 
+            VALUES ('$newProductName', '$newProductPrice','$newCategoryName', '$newSupplierName', '$newStockQuantity', '$newReorderLevel', '$newShelfLocation', '$newLastRestockDate', '$newExpiryDate')";
 
         if ($conn->query($insertQuery) === TRUE) {
             showAlertAndRefresh("New product added successfully!");

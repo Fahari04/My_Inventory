@@ -7,6 +7,9 @@ function showAlertAndRefresh($message)
     echo "<script>alert('" . htmlspecialchars($message, ENT_QUOTES) . "'); window.location.href='transaction.php';</script>";
 }
 
+
+$selectedProductName = "";
+$selectedCustomerName = "";
 // Handle product purchase form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
     // Ensure purchase date is set
@@ -21,6 +24,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
     $totalPurchasePrice = 0;
     $totalQuantity = 0;
 
+    if (isset($_POST['CustomerName']) && !empty($_POST['CustomerName'])) {
+        $selectedCustomerName = $conn->real_escape_string($_POST['CustomerName']);
+    } else {
+        showAlertAndRefresh("Please select a customer");
+    }
+
     // Loop through each product
     foreach ($_POST['productName'] as $index => $productName) {
         // Get product details
@@ -29,6 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
 
         // Fetch unit price and total quantity for the selected product
         $fetchProductDetailsQuery = "SELECT ProductID, ProductPrice, StockQuantity FROM Inventory WHERE ProductName = '$productName'";
+
         $result = $conn->query($fetchProductDetailsQuery);
 
         if ($result && $result->num_rows > 0) {
@@ -38,9 +48,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
             $productId = $row['ProductID'];
             $unitPrice = $row['ProductPrice'];
             $totalProductQuantity = $row['StockQuantity'];
+
+            $selectedProductName .= $productName . " (" . $quantity . ")" . " ";
+
+
             // Calculate the total price for the current product
             $totalPrice = $unitPrice * $quantity;
-
             // Add the current product's total price to the overall purchase total
             $totalPurchasePrice += $totalPrice;
 
@@ -55,15 +68,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
             if ($conn->query($updateProductQuery) !== TRUE) {
                 showAlertAndRefresh("Error updating product quantity: " . $conn->error);
             }
-
-            // Insert the purchase information into the transaction table along with the date
-            $insertTransactionQuery = "INSERT INTO Transaction (TransactionType, TotalQuantity, TransactionAmount, TransactionDate) 
-                                       VALUES ('Sale', '$quantity', '$totalPrice', '$purchaseDate')";
-
-            if ($conn->query($insertTransactionQuery) !== TRUE) {
-                showAlertAndRefresh("Error inserting transaction information: " . $conn->error);
-            }
         }
+    }
+
+    // Insert the purchase information into the transaction table along with the date
+    $insertTransactionQuery = "INSERT INTO Transaction (TransactionProduct, TransactionHolder, TransactionType, TotalQuantity, TransactionAmount, TransactionDate) 
+                           VALUES ('$selectedProductName', '$selectedCustomerName', 'Sale', '$quantity', '$totalPrice', '$purchaseDate')";
+
+
+    if ($conn->query($insertTransactionQuery) !== TRUE) {
+        showAlertAndRefresh("Error inserting transaction information: " . $conn->error);
     }
 
     showAlertAndRefresh("Products purchased successfully! Total purchase price: $" . number_format($totalPurchasePrice, 2));
@@ -119,15 +133,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-6">
+                            <label for="CustomerName" class="form-label">Customer Name</label>
+                            <select class="form-select" id="CustomerName" name="CustomerName">
+                                <option value="" selected disabled>Select a customer</option>
+                                <?php
+                                $fetchProductNamesQuery = "SELECT CustomerName FROM customer";
+                                $result = $conn->query($fetchProductNamesQuery);
+
+                                if ($result && $result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo "<option value='" . $row['CustomerName'] . "'>" . $row['CustomerName'] . "</option>";
+                                    }
+                                }
+                                ?>
+                            </select>
                         </div>
-                        <div class="col-md-6 text-end">
+                        <div class="col-md-6 ">
                             <div class="mb-3">
                                 <label for="purchaseDate" class="form-label">Sale Date</label>
                                 <input type="date" class="form-control" id="purchaseDate" name="purchaseDate" required>
                             </div>
+
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" name="addPurchase">Add Sale</button>
+                    <button type="submit" class="btn btn-primary" name="addPurchase"> Sale</button>
                 </form>
             </div>
 
@@ -180,16 +209,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.8/dist/umd/popper.min.js"
-        integrity="sha384-E7J8oIpgiPf5jfaOfjhCpLcdXD1TjNBWr6b7F2S10Y1L0h3CQad/Ip63KbIvbL+Z"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
-        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+WyIx7Q4I3cxgP5+9TqWDj57f5C4b7pJd"
-        crossorigin="anonymous"></script>    
-        <script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.8/dist/umd/popper.min.js" integrity="sha384-E7J8oIpgiPf5jfaOfjhCpLcdXD1TjNBWr6b7F2S10Y1L0h3CQad/Ip63KbIvbL+Z" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+WyIx7Q4I3cxgP5+9TqWDj57f5C4b7pJd" crossorigin="anonymous"></script>
+    <script>
         var selectedProductName = "";
 
         function fetchProductDetails() {
@@ -206,6 +229,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
                     });
             }
         }
+
 
         function updateTotals(quantity, unitPrice) {
             var totalQuantityElement = document.getElementById('totalQuantity');

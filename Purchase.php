@@ -6,7 +6,8 @@ function showAlertAndRefresh($message)
 {
     echo "<script>alert('" . htmlspecialchars($message, ENT_QUOTES) . "'); window.location.href='Purchase.php';</script>";
 }
-
+$selectedProductName = "";
+$selectedCustomerName = "Admin";
 // Handle product purchase form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
     // Ensure purchase date is set
@@ -19,12 +20,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
 
     // Initialize total price and total quantity for the entire purchase
     $totalPurchasePrice = 0;
-    $totalQuantity = 0;
 
     // Loop through each product
     foreach ($_POST['productName'] as $index => $productName) {
         // Get product details
         $productName = $conn->real_escape_string($productName);
+        $quantity = $conn->real_escape_string($_POST['quantity'][$index]);
 
         // Fetch unit price and total quantity for the selected product
         $fetchProductDetailsQuery = "SELECT ProductPrice, StockQuantity FROM Inventory WHERE ProductName = '$productName'";
@@ -36,9 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
             // Get additional details
             $unitPrice = $row['ProductPrice'];
             $totalProductQuantity = $row['StockQuantity'];
+            $selectedProductName .= $productName . " (" . $totalProductQuantity . ")" . " ";
 
             // Add the current product's quantity to the overall purchase quantity
-            $totalQuantity += $totalProductQuantity;
+            //$totalQuantity += $totalProductQuantity;
 
             // Calculate the total price for the current product
             $totalPrice = $unitPrice * $totalProductQuantity;
@@ -49,8 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
     }
 
     // Insert the purchase information into the transaction table along with the date
-    $insertTransactionQuery = "INSERT INTO Transaction (TransactionType, TotalQuantity, TransactionAmount, TransactionDate) 
-        VALUES ('Purchase', '$totalQuantity', '$totalPurchasePrice', '$purchaseDate')";
+    $insertTransactionQuery = "INSERT INTO Transaction (TransactionProduct, TransactionHolder,TransactionType, TotalQuantity, TransactionAmount, TransactionDate) 
+        VALUES ('$selectedProductName', '$selectedCustomerName','Purchase', '$totalProductQuantity', '$totalPurchasePrice', '$purchaseDate')";
 
     if ($conn->query($insertTransactionQuery) !== TRUE) {
         showAlertAndRefresh("Error inserting transaction information: " . $conn->error);
@@ -115,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addPurchase'])) {
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" name="addPurchase">Add Purchase</button>
+                    <button type="submit" class="btn btn-primary" name="addPurchase">Purchase</button>
                 </form>
 
             </div>

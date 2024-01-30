@@ -120,29 +120,12 @@ USE my_inventory;
 
 CREATE TABLE Transaction (
     TransactionID INT PRIMARY KEY AUTO_INCREMENT,
+    
     TransactionType VARCHAR(50),
     TransactionDate DATE,
     TransactionAmount VARCHAR(50),
     TotalQuantity VARCHAR(50)
 );
-USE my_inventory;
-INSERT INTO Transaction (TransactionType, TransactionDate, TransactionAmount, TotalQuantity)
-VALUES
-    ('Sale', '2024-01-25', 100.50, 5),
-    ('Purchase', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-26', 75.25, 3),
-    ('Purchase', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-25', 100.50, 5),
-    ('Purchase', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-26', 75.25, 3),
-    ('Purchase', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-25', 100.50, 5),
-    ('Purchase', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-26', 75.25, 3),
-    ('Purchase', '2024-01-26', 75.25, 3),
-    ('Sale', '2024-01-26', 75.25, 3);
 
 
 
