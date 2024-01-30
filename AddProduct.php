@@ -36,9 +36,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addProduct'])) {
     $existingProductResult = $conn->query($checkProductQuery);
 
     if ($existingProductResult->num_rows > 0) {
-        showAlertAndRefresh("Product with the name '$newProductName' already exists.");
+        // If the product exists, update it
+        $updateQuery = "UPDATE Inventory SET 
+            ProductPrice = '$newProductPrice',
+            CategoryName = '$newCategoryName',
+            SupplierName = '$newSupplierName',
+            StockQuantity = '$newStockQuantity',
+            ReorderLevel = '$newReorderLevel',
+            ShelfLocation = '$newShelfLocation',
+            LastRestockDate = '$newLastRestockDate',
+            ExpiryDate = '$newExpiryDate'
+            WHERE ProductName = '$newProductName'";
+
+        if ($conn->query($updateQuery) === TRUE) {
+            showAlertAndRefresh("Product updated successfully!");
+        } else {
+            showAlertAndRefresh("Error updating product: " . $conn->error);
+        }
     } else {
-        // If the product does not exist, insert into the database
+        // If the product does not exist, insert it into the database
         $insertQuery = "INSERT INTO Inventory (ProductName, ProductPrice,CategoryName, SupplierName, StockQuantity, ReorderLevel, ShelfLocation, LastRestockDate, ExpiryDate) 
             VALUES ('$newProductName', '$newProductPrice','$newCategoryName', '$newSupplierName', '$newStockQuantity', '$newReorderLevel', '$newShelfLocation', '$newLastRestockDate', '$newExpiryDate')";
 
@@ -50,6 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addProduct'])) {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
