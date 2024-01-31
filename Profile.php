@@ -27,6 +27,15 @@ mysqli_close($conn);
     <title>User Profile</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        /* Custom style to center the card */
+        .center-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 
 <body>
@@ -34,20 +43,21 @@ mysqli_close($conn);
     <div class="d-flex">
         <?php include 'navbar.php'; ?>
 
-        <div class="main p-3 vh-100 overflow-hidden transition text-center">
-            <!-- User Profile Information -->
+        <div class="main p-3 vh-100 transition text-center">
+            
             <?php if (!empty($user)) : ?>
-                <div class="card mx-auto" style="max-width: 400px;">
+                <div class="card center-card" style="max-width: 800px;" >
                     <div class="card-header">
                         <h5 class="card-title">User Profile</h5>
                     </div>
                     <div class="card-body">
-                        <p class="card-text"><strong>ID:</strong> <?= $user['id'] ?></p>
                         <p class="card-text"><strong>Name:</strong> <?= $user['name'] ?></p>
                         <p class="card-text"><strong>Username:</strong> <?= $user['username'] ?></p>
                         <p class="card-text"><strong>Email:</strong> <?= $user['email'] ?></p>
                         <p class="card-text"><strong>Mobile:</strong> <?= $user['mobile'] ?></p>
                         <p class="card-text"><strong>Date of Birth:</strong> <?= $user['date_of_birth'] ?></p>
+
+                        <a href="update_profile.php" class="btn btn-primary">Update Profile</a>
                     </div>
                 </div>
             <?php else : ?>
